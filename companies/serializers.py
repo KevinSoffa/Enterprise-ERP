@@ -25,8 +25,7 @@ class EmployeesSerializers(serializers.ModelSerializer):
         return obj.user.email
 
 # Único funcionário  
-class EmployeeSerializer(serializers.SerializerMethodField):
-    # Criando name e email
+class EmployeeSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
     email = serializers.SerializerMethodField()
     groups = serializers.SerializerMethodField()
@@ -48,7 +47,7 @@ class EmployeeSerializer(serializers.SerializerMethodField):
     
     def get_groups(self, obj):
         groupsDB = User_Groups.objects.filter(user_id=obj.user.id).all()
-        groupsDATA = [] # Lista personalizada de grupos
+        groupsDATA = []
 
         for group in groupsDB:
             groupsDATA.append({
@@ -58,13 +57,14 @@ class EmployeeSerializer(serializers.SerializerMethodField):
         
         return groupsDATA
 
+
 # Retornando todos os Grupos
 class GroupSerializer(serializers.ModelSerializer):
     permissions = serializers.SerializerMethodField()
 
     class Meta:
         model = Group
-        field = (
+        fields = (
             "id",
             "name",
             "permissions"

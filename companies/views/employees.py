@@ -24,7 +24,7 @@ class Employees(Base):
         # obtendo os funcionários
         employees = Employee.objects.filter(enterprise_id=enterprise_id).exclude(user_id=owner_id).all()
 
-        serializer = EmployeeSerializer(employees, many=True)
+        serializer = EmployeesSerializers(employees, many=True)
 
         return Response({
             "employees": serializer.data

@@ -1,35 +1,30 @@
 from rest_framework.views import APIView
+from rest_framework.exceptions import NotFound
+from django.shortcuts import get_object_or_404
 from companies.utils.exceptions import (
     NotFoundEmployee,
     NotFoundGroup,
     NotFoundTask,
-    NotFoundTaskStatus
+    NotFoundTaskStatus,
 )
 from companies.models import Employee, Enterprise, Task, TaskStatus
 from accounts.models import Group
 
 
 class Base(APIView):
-    def get_enterprise_id(self, user_id):
-        employee = Employee.objects.filter(user_id=user_id).first()
-        owner = Enterprise.objects.filter(user_id=user_id).first()
-
-        if employee:
-            # Se for funcionário
-            return employee.enterprise.id
-        
-        # Se for dono
-        return owner.id
-    
     def get_employee(self, employee_id, user_id):
         enterprise_id = self.get_enterprise_id(user_id)
+        return get_object_or_404(Employee, id=employee_id, enterprise_id=enterprise_id)
+    
+    # def get_employee(self, employee_id, user_id):
+    #     enterprise_id = self.get_enterprise_id(user_id)
 
-        employee = Employee.objects.filter(id=employee_id, enterprise_id=enterprise_id)
+    #     employee = Employee.objects.filter(id=employee_id, enterprise_id=enterprise_id)
 
-        if not employee:
-            raise NotFoundEmployee
+    #     if not employee:
+    #         raise NotFoundEmployee
         
-        return employee
+    #     return employee
     
     def get_group(self, group_id, enterprise_id):
         group = Group.objects.values('name').filter(id+group_id, enterprise_id=enterprise_id).first()
@@ -54,3 +49,11 @@ class Base(APIView):
             raise NotFoundTask
         
         return task
+    
+    def get_enterprise_id(self, user_id):
+        enterprise = Enterprise.objects.filter(user_id=user_id).first()
+        if enterprise:
+            return enterprise.id
+        else:
+            # pode lançar exceção, retornar None, ou tratar como preferir
+            raise NotFound("Empresa não encontrada para o usuário")
