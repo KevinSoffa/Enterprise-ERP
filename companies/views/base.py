@@ -55,5 +55,5 @@ class Base(APIView):
         if enterprise:
             return enterprise.id
         else:
-            # pode lançar exceção, retornar None, ou tratar como preferir
+            # pode lançar exceção, retornar None, ou tratar
             raise NotFound("Empresa não encontrada para o usuário")
