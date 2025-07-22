@@ -1,0 +1,118 @@
+from companies.views.base import Base
+from companies.utils.exceptions import RequiredFields
+from companies.utils.permissions import GroupsPermission
+from companies.serializers import GroupSerializer
+
+from accounts.models import Group, Group_Permissions
+
+from rest_framework.views import Response
+from rest_framework.exceptions import APIException
+
+from django.contrib.auth.models import Permission
+
+
+class Groups(Base):
+    permission_classes = [GroupsPermission]
+
+    def get(self, request):
+        enterprise_id = self.get_enterprise_id(request.user.id)
+        groups = Group.objects.filter(enterprise_id=enterprise_id).all()
+
+        serializer = GroupSerializer(groups, many=True)
+
+        # Retornando Todos os Grupos
+        return Response({"groups": serializer.data})
+    
+    def post(self, request):
+        enterprise_id = self.get_enterprise_id(request.user.id)
+
+        name = request.data.get('name')
+        permissions = request.data.get('permissions') # => 1,2,3,4
+
+        if not name:
+            raise RequiredFields
+        
+        created_group = Group.objects.create(
+            name=name,
+            enterprise_id=enterprise_id
+        )
+
+        if permissions:
+            permissions = permissions.split(',')
+            try:
+                # Só recebe number
+                for item in permissions:
+                    permissions = Permission.objects.filter(id=item).exists()
+
+                    if not permissions:
+                        created_group.delete()
+                        raise APIException(f'A permissão {str(item)} não existe')
+                    
+                    if not Group_Permissions.objects.filter(group_id=created_group.id, permissions_id=item).exists():
+                        Group_Permissions.objects.create(
+                            group_id = created_group.id,
+                            permissions_id = item
+                        )
+            
+            except ValueError:
+                created_group.delete()
+                raise APIException('Envie as permissões no padrão correto!')
+            
+        return Response({"success": True})
+
+
+class GroupDetail(Base):
+    permission_classes = [Group_Permissions]
+
+    def get(self, request, group_id):
+        enterprise_id = self.get_enterprise_id(request.user.id)
+
+        self.get_group(group_id, enterprise_id)
+        group = Group.objects.filter(id=group_id).first()
+
+        serializer = GroupSerializer(group)
+
+        return Response({"group": serializer.data})
+    
+    def put(self, request, group_id):
+        enterprise_id = self.get_enterprise_id(request.user.id)
+        self.get_group(group_id, enterprise_id)
+
+        name = request.data.get('name')
+        permissions = request.data.get('permissions') # => 1,2,3,4
+
+        if name:
+            Group.objects.filter(id=group_id).update(
+                name=name
+            )
+
+        Group_Permissions.objects.filter(group_id=group_id).delete()
+
+        if permissions:
+            permissions = permissions.split(',')
+            try:
+                # Só recebe number
+                for item in permissions:
+                    permissions = Permission.objects.filter(id=item).exists()
+
+                    if not permissions:
+                        raise APIException(f'A permissão {str(item)} não existe')
+                    
+                    if not Group_Permissions.objects.filter(group_id=group_id, permissions_id=item).exists():
+                        Group_Permissions.objects.create(
+                            group_id = group_id,
+                            permissions_id = item
+                        )
+            
+            except ValueError:
+                raise APIException('Envie as permissões no padrão correto!')
+
+
+    
+    def delete(self, request, group_id):
+        enterprise_id = self.get_enterprise_id(request.user.id)
+
+        Group.objects.filter(id=group_id, enterprise_id=enterprise_id).delete()
+
+        return Response({"success": True})
+    
