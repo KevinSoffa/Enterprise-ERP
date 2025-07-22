@@ -27,7 +27,7 @@ class Base(APIView):
     #     return employee
     
     def get_group(self, group_id, enterprise_id):
-        group = Group.objects.values('name').filter(id+group_id, enterprise_id=enterprise_id).first()
+        group = Group.objects.values('name').filter(id=group_id, enterprise_id=enterprise_id).first()
 
         if not group:
             raise NotFoundGroup

@@ -48,10 +48,10 @@ class Groups(Base):
                         created_group.delete()
                         raise APIException(f'A permissão {str(item)} não existe')
                     
-                    if not Group_Permissions.objects.filter(group_id=created_group.id, permissions_id=item).exists():
+                    if not Group_Permissions.objects.filter(group_id=created_group.id, permission_id=item).exists():
                         Group_Permissions.objects.create(
                             group_id = created_group.id,
-                            permissions_id = item
+                            permission_id = item
                         )
             
             except ValueError:
@@ -62,7 +62,7 @@ class Groups(Base):
 
 
 class GroupDetail(Base):
-    permission_classes = [Group_Permissions]
+    permission_classes = [GroupsPermission]
 
     def get(self, request, group_id):
         enterprise_id = self.get_enterprise_id(request.user.id)
@@ -98,17 +98,17 @@ class GroupDetail(Base):
                     if not permissions:
                         raise APIException(f'A permissão {str(item)} não existe')
                     
-                    if not Group_Permissions.objects.filter(group_id=group_id, permissions_id=item).exists():
+                    if not Group_Permissions.objects.filter(group_id=group_id, permission_id=item).exists():
                         Group_Permissions.objects.create(
                             group_id = group_id,
-                            permissions_id = item
+                            permission_id = item
                         )
             
             except ValueError:
                 raise APIException('Envie as permissões no padrão correto!')
-
-
-    
+        
+        return Response({"success": True})
+        
     def delete(self, request, group_id):
         enterprise_id = self.get_enterprise_id(request.user.id)
 
