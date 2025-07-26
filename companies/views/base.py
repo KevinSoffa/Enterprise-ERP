@@ -42,13 +42,14 @@ class Base(APIView):
         
         return status
     
-    def get_task(self, task_id, enteprise_id):
-        task = Task.objects.filter(id=task_id, enteprise_id=enteprise_id).first()
+    def get_task(self, task_id, enterprise_id):
+        task = Task.objects.filter(id=task_id, enterprise_id=enterprise_id).first()
 
         if not task:
             raise NotFoundTask
         
         return task
+
     
     def get_enterprise_id(self, user_id):
         enterprise = Enterprise.objects.filter(user_id=user_id).first()

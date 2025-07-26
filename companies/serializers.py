@@ -102,7 +102,7 @@ class TasksSerializers(serializers.ModelSerializer):
             "title",
             "description",
             "due_date",
-            "created_at",
+            "created",
             "status"
         )
 
@@ -120,7 +120,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "title",
             "description",
             "due_date",
-            "created_at",
+            "created",
             "status",
             "employee"
         )
@@ -129,7 +129,7 @@ class TaskSerializer(serializers.ModelSerializer):
         return obj.status.name
     
     def get_employee(self, obj):
-        return EmployeesSerializers(obj.employee).date
+        return EmployeesSerializers(obj.employee).data
     
     def updated(self, instance, validated_data):
         instance.title = validated_data.get('title', instance.title)

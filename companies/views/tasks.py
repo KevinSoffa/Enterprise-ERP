@@ -46,7 +46,7 @@ class Tasks(Base):
             title=title,
             description=description,
             due_date=due_date,
-            employee=employee_id,
+            employee=employee,
             enterprise_id=employee.enterprise.id,
             status_id=status_id
         )
@@ -80,6 +80,13 @@ class TaskDetail(Base):
         # Validators
         self.get_status(status_id)
         self.get_employee(employee_id, request.user.id)
+
+        if due_date and due_date != task.due_date:
+            try:
+                due_date = datetime.datetime.strptime(due_date, '%d/%m/%Y %H:%M')
+            
+            except ValueError:
+                raise APIException('A Data dever ter o padrão: "d/m/Y H:M"', "date_invalid")
 
         data = {
             "title": title,
